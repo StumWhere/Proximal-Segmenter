@@ -39,21 +39,22 @@ neigh = nd.maximum_filter(dayOne,howClose)
 #Establish fire regions
 Fire = measure.label(neigh*dayOne,background=False)  #multiplying masks out unburned pixels
 Fire[Fire==1] = Fire[Fire==1]+1 #First identified fire ID is 2
-
+prevDay = daySet[1]
 
 for day in daySet[2:]:   #Move through each day with burned pixel
-    #lag is hot spots
-    if day<=howRec: lag = 1
-    else: lag = day-howRec
-    #Find hot spots in previously id'd fires, which have burned in the past 'howRec' days
-    hotSpots = np.zeros_like(Fire)
-    hotSpots[(days>= lag) & (days<day)] = Fire[(days>= lag) & (days<day)]
     #Just burned that day
     active = days == day
     actNeigh = nd.maximum_filter(active, howClose) #active fire complexes
     newFire,nNF = nd.label(actNeigh,structure=s3x3)
-    #if there hotspots see if recently burned pixels are spatially associated:
-    if hotSpots.sum():
+    #if the span between previous day with fire is > than horRec, there will be 
+    #no hotSpot pixels:
+    if (day-prevDay)<=howRec:
+        #lag is hot spots so as not to look for negative days
+        if day<=howRec: lag = 1
+        else: lag = day-howRec
+        #Find hot spots in previously id'd fires, which have burned in the past 'howRec' days
+        hotSpots = np.zeros_like(Fire)
+        hotSpots[(days>= lag) & (days<day)] = Fire[(days>= lag) & (days<day)]
         #List of newFire IDs
         nID = np.arange(1,nNF+1)
         #find new fires that overlap (within howClose) with hot spots
@@ -67,7 +68,7 @@ for day in daySet[2:]:   #Move through each day with burned pixel
     #relabel newFires  have adjacent existing Fire
     for i,c in enumerate(fireAssign):
         Fire[newFire==nID[i]]=c
-        
+    prevDay = day
 #References:
     #http://scikit-image.org/docs/dev/api/skimage.measure.html#skimage.measure.label
     #https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.label.html#scipy.ndimage.measurements.label
