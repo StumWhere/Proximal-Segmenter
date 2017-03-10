@@ -38,7 +38,7 @@ dayOne = days==daySet[1]  #find first burn
 neigh = nd.maximum_filter(dayOne,howClose)
 #Establish fire regions
 Fire = measure.label(neigh*dayOne,background=False)  #multiplying masks out unburned pixels
-Fire[Fire==1] = Fire[Fire==1]+1 #First identified fire ID is 2
+Fire[Fire!=0] = Fire[Fire!=0]+1 #Add one to all Fired pixels, ignoring background
 prevDay = daySet[1]
 
 for day in daySet[2:]:   #Move through each day with burned pixel
