@@ -24,7 +24,7 @@ howRec = 3 #absolute measure of similarity (e.g. how many days ago)
 howClose = (5,5)  #window size
 s3x3 = nd.generate_binary_structure(2,2)
 
-rIN = open(r"C:\stuff\days3.txt",'r')
+rIN = open(r"C:\stuff\days4.txt",'r')
 dayText = rIN.readlines()
 rIN.close()
 dayList = [l.split('\t') for l in dayText]
@@ -46,6 +46,8 @@ for day in daySet[2:]:   #Move through each day with burned pixel
     active = days == day
     actNeigh = nd.maximum_filter(active, howClose) #active fire complexes
     newFire,nNF = nd.label(actNeigh,structure=s3x3)
+    #List of newFire IDs
+    nID = np.arange(1,nNF+1)
     #if the span between previous day with fire is > than horRec, there will be 
     #no hotSpot pixels:
     if (day-prevDay)<=howRec:
@@ -55,8 +57,7 @@ for day in daySet[2:]:   #Move through each day with burned pixel
         #Find hot spots in previously id'd fires, which have burned in the past 'howRec' days
         hotSpots = np.zeros_like(Fire)
         hotSpots[(days>= lag) & (days<day)] = Fire[(days>= lag) & (days<day)]
-        #List of newFire IDs
-        nID = np.arange(1,nNF+1)
+
         #find new fires that overlap (within howClose) with hot spots
         fireAssign = nd.maximum(hotSpots,newFire,index=nID)
         #if fire ID is 0 then it is a new fire, create new ID
